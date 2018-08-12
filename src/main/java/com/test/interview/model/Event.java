@@ -49,4 +49,16 @@ public class Event
     {
         return host;
     }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("id: ").append(id).append(" ");
+        builder.append("duration: ").append(duration).append(" ");
+        builder.append("type: ").append(type).append(" ");
+        builder.append("host: ").append(host);
+        return builder.toString();
+
+    }
 }

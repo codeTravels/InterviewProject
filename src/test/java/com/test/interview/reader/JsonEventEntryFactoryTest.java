@@ -1,16 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.test.interview.reader;
 
 import com.test.interview.model.EventEntry;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import org.json.simple.JSONObject;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  *
@@ -21,6 +20,60 @@ public class JsonEventEntryFactoryTest
 
     public JsonEventEntryFactoryTest()
     {
+    }
+
+    @Test
+    public void testNext_nullReturned() throws IOException
+    {
+        JsonFileReader jsonFileReader = mock(JsonFileReader.class);
+        when(jsonFileReader.readLine()).thenReturn(null);
+        JsonEventEntryFactory eventEntryFactory = new JsonEventEntryFactory();
+        EventEntry entry = eventEntryFactory.next(jsonFileReader);
+        assertNull(entry);
+    }
+
+    @Test
+    public void testNextWithAllJsonData() throws IOException
+    {
+        String id = "scsmbstgra";
+        String state = "STARTED";
+        long timestamp = 1491377495212L;
+        String type = "APPLICATION_LOG";
+        String host = "12345";
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", id);
+        jsonObject.put("state", state);
+        jsonObject.put("timestamp", timestamp);
+        jsonObject.put("type", type);
+        jsonObject.put("host", host);
+        JsonFileReader jsonFileReader = mock(JsonFileReader.class);
+        when(jsonFileReader.readLine()).thenReturn(jsonObject);
+        JsonEventEntryFactory eventEntryFactory = new JsonEventEntryFactory();
+
+        EventEntry entry = eventEntryFactory.next(jsonFileReader);
+
+        EventEntry expected = new EventEntry(id, state, timestamp, type, host);
+        assertExpectedEntryEqualsActualEntry(expected, entry);
+    }
+
+    @Test
+    public void testNextWithRequiredJsonData() throws IOException
+    {
+        String id = "scsmbstgra";
+        String state = "STARTED";
+        long timestamp = 1491377495212L;
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", id);
+        jsonObject.put("state", state);
+        jsonObject.put("timestamp", timestamp);
+        JsonFileReader jsonFileReader = mock(JsonFileReader.class);
+        when(jsonFileReader.readLine()).thenReturn(jsonObject);
+        JsonEventEntryFactory eventEntryFactory = new JsonEventEntryFactory();
+
+        EventEntry entry = eventEntryFactory.next(jsonFileReader);
+
+        EventEntry expected = new EventEntry(id, state, timestamp);
+        assertExpectedEntryEqualsActualEntry(expected, entry);
     }
 
     /**
@@ -63,12 +116,6 @@ public class JsonEventEntryFactoryTest
             host = null;
             expected = new EventEntry(id, state, timestamp, type, host);
             assertExpectedEntryEqualsActualEntry(expected, entry);
-//            while (entry != null)
-//            {
-//                entry = eventEntryFactory.next();
-//                System.out.println("entry = " + entry);
-//
-//            }
         }
     }
 

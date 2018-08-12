@@ -1,32 +1,98 @@
 package com.test.interview.reader;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  *
  * @author Cory
  */
-public class FileReaderTest
+public class JsonFileReaderTest
 {
 
-    public FileReaderTest()
+    public JsonFileReaderTest()
     {
     }
 
     @Test
-    public void testSomeMethod() throws ParseException
+    public void testReadLineReturnsNull() throws IOException
     {
-        JSONParser parser = new JSONParser();
-        Object obj = parser.parse("{\"id\":\"scsmbstgra\", \"state\":\"STARTED\", \"type\":\"APPLICATION_LOG\",\n"
-                + "\"host\":\"12345\", \"timestamp\":1491377495212}");
+        BufferedReader bufferedReader = mock(BufferedReader.class);
+        when(bufferedReader.readLine()).thenReturn(null);
+        try (JsonFileReader jsonFileReader = new JsonFileReader(bufferedReader))
+        {
+            assertNull(jsonFileReader.readLine());
+        }
+    }
 
-        JSONObject jsonObject = (JSONObject) obj;
-        String id = (String) jsonObject.get("id");
-        System.out.println("id = " + id);
+    @Test
+    public void testReadLine() throws IOException
+    {
+        String filePath = "src\\test\\resources\\inputFile.txt";
 
+        try (
+                FileReader fileReader = new FileReader(filePath);
+                BufferedReader bufferedReader = new BufferedReader(fileReader);
+                JsonFileReader jsonFileReader = new JsonFileReader(bufferedReader))
+        {
+
+            JSONObject actual = jsonFileReader.readLine();
+            JSONObject expected = new JSONObject();
+            expected.put("id", "scsmbstgra");
+            expected.put("state", "STARTED");
+            expected.put("timestamp", 1491377495212L);
+            expected.put("type", "APPLICATION_LOG");
+            expected.put("host", "12345");
+
+            assertEquals(expected, actual);
+
+            actual = jsonFileReader.readLine();
+            expected = new JSONObject();
+            expected.put("id", "scsmbstgrb");
+            expected.put("state", "STARTED");
+            expected.put("timestamp", 1491377495213L);
+
+            assertEquals(expected, actual);
+
+            actual = jsonFileReader.readLine();
+            expected = new JSONObject();
+            expected.put("id", "scsmbstgrc");
+            expected.put("state", "FINISHED");
+            expected.put("timestamp", 1491377495218L);
+
+            assertEquals(expected, actual);
+        }
+    }
+
+    /**
+     * Test of close method, of class JsonFileReader.
+     */
+    @Test
+    public void testClose() throws Exception
+    {
+        String filePath = "src\\test\\resources\\inputFile.txt";
+
+        try (
+                FileReader fileReader = new FileReader(filePath);
+                BufferedReader bufferedReader = new BufferedReader(fileReader);
+                JsonFileReader jsonFileReader = new JsonFileReader(bufferedReader))
+        {
+            JSONObject obj = jsonFileReader.readLine();
+            assertNotNull(obj);
+            jsonFileReader.close();
+
+            obj = jsonFileReader.readLine();
+            assertNull(obj);
+
+        }
     }
 
 }
