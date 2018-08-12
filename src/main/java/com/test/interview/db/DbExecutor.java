@@ -9,6 +9,6 @@ import com.test.interview.db.sql.Sql;
 public interface DbExecutor extends Runnable
 {
 
-    public void submit(Sql sql);
+    public void execute(Sql sql);
 
 }

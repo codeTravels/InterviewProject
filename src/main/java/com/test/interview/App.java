@@ -5,6 +5,8 @@ import com.test.interview.db.DbExecutor;
 import com.test.interview.db.sql.CreateEventTableSql;
 import com.test.interview.db.sql.Sql;
 import com.test.interview.reader.JsonEventService;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,15 +23,22 @@ public class App
 {
 
     private final Logger logger = LoggerFactory.getLogger(App.class);
-    private final DbExecutor dbExecutor;
+    private final List<DbExecutor> dbExecutors;
     private final JsonEventService jsonEventService;
-    private final ExecutorService execSvc = Executors.newSingleThreadExecutor();
+    private final ExecutorService execSvc;
 
     public App(String filePath)
     {
+
+        dbExecutors = new ArrayList<>();
+        int numDbWorkers = 5;
+        execSvc = Executors.newFixedThreadPool(numDbWorkers);
         String dbUrl = "jdbc:hsqldb:file:hsqldb\\demodb";
         BlockingQueue<Sql> sharedQueue = new LinkedBlockingQueue<>();
-        this.dbExecutor = new DbCommandExecutor(dbUrl, sharedQueue);
+        for (int i = 0; i < numDbWorkers; i++)
+        {
+            this.dbExecutors.add(new DbCommandExecutor(dbUrl, sharedQueue));
+        }
 
         this.jsonEventService = new JsonEventService(filePath, sharedQueue);
     }
@@ -38,7 +47,7 @@ public class App
     {
         logger.info("Starting app...");
         initializeDatabaseTable();
-        execSvc.submit(dbExecutor);
+        startDbExecutors();
 
         jsonEventService.run();
 
@@ -47,8 +56,16 @@ public class App
 
     private void initializeDatabaseTable()
     {
-        logger.info("Submit create table SQL");
-        dbExecutor.submit(new CreateEventTableSql());
+        logger.info("Execute create table SQL");
+        dbExecutors.get(0).execute(new CreateEventTableSql());
+    }
+
+    private void startDbExecutors()
+    {
+        dbExecutors.forEach((dbExecutor) ->
+        {
+            execSvc.submit(dbExecutor);
+        });
     }
 
     private void shutdown()
