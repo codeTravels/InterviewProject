@@ -24,7 +24,7 @@ public class JsonEventEntryFactoryTest
     }
 
     @Test
-    public void testNext_nullReturned() throws IOException
+    public void testNext_nullReturned()
     {
         JsonFileReader jsonFileReader = mock(JsonFileReader.class);
         when(jsonFileReader.readLine()).thenReturn(null);
@@ -34,7 +34,7 @@ public class JsonEventEntryFactoryTest
     }
 
     @Test
-    public void testNextWithAllJsonData() throws IOException
+    public void testNextWithAllJsonData()
     {
         String id = "scsmbstgra";
         String state = "STARTED";
@@ -58,7 +58,7 @@ public class JsonEventEntryFactoryTest
     }
 
     @Test
-    public void testNextWithRequiredJsonData() throws IOException
+    public void testNextWithRequiredJsonData()
     {
         String id = "scsmbstgra";
         String state = "STARTED";

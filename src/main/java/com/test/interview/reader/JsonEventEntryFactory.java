@@ -1,7 +1,6 @@
 package com.test.interview.reader;
 
 import com.test.interview.model.EventEntry;
-import java.io.IOException;
 import org.json.simple.JSONObject;
 
 /**
@@ -15,7 +14,7 @@ public class JsonEventEntryFactory
     {
     }
 
-    public EventEntry next(JsonFileReader reader) throws IOException
+    public EventEntry next(JsonFileReader reader)
     {
         JSONObject object = reader.readLine();
         if (object != null)

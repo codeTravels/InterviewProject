@@ -26,29 +26,36 @@ public class JsonFileReader implements AutoCloseable
 
     }
 
-    public JSONObject readLine() throws IOException
+    public JSONObject readLine()
     {
+        JSONObject obj = null;
         try
         {
             String readLine = reader.readLine();
-            Object obj = null;
             if (readLine != null)
             {
-                obj = parser.parse(readLine);
+                obj = (JSONObject) parser.parse(readLine);
             }
-            return (JSONObject) obj;
         }
         catch (IOException | ParseException ex)
         {
             logger.error(ex.toString());
             close();
         }
-        return null;
+        return obj;
     }
 
     @Override
-    public void close() throws IOException
+    public void close()
     {
-        reader.close();
+
+        try
+        {
+            reader.close();
+        }
+        catch (IOException ex)
+        {
+            throw new RuntimeException(ex);
+        }
     }
 }
