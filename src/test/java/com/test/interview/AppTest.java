@@ -3,6 +3,7 @@ package com.test.interview;
 import com.test.interview.db.DbExecutor;
 import com.test.interview.db.sql.Sql;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.mock;
@@ -30,6 +31,7 @@ public class AppTest
         String insertSql = captor.getValue().get();
         System.out.println(insertSql);
 
+        assertNotNull(app);
         assertEquals("CREATE TABLE IF NOT EXISTS Events ( id varchar(100) NOT NULL, duration int NOT NULL, type varchar(100), host varchar(100), alert BOOLEAN, PRIMARY KEY (id))", insertSql);
     }
 

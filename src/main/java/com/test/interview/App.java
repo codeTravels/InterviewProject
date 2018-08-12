@@ -8,8 +8,9 @@ import com.test.interview.model.EventEntry;
 import com.test.interview.reader.JsonEventEntryFactory;
 import com.test.interview.reader.JsonFileReader;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -39,7 +40,8 @@ public class App
     void go()
     {
         try (
-                FileReader fileReader = new FileReader(filePath);
+                FileInputStream fileInputStream = new FileInputStream(filePath);
+                InputStreamReader fileReader = new InputStreamReader(fileInputStream, "UTF-8");
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 JsonFileReader jsonFileReader = new JsonFileReader(bufferedReader))
         {

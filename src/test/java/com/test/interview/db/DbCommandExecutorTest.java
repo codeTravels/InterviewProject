@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import org.junit.Assert;
+import java.sql.Statement;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -29,14 +29,12 @@ public class DbCommandExecutorTest
         DbCommandExecutor executor = new DbCommandExecutor(imMemoryDbUrl);
         executor.execute(new CreateEventTableSql());
         executor.execute(new InsertIntoEventTableSql(event));
-        try (Connection con = DriverManager.getConnection(imMemoryDbUrl, "SA", ""))
+        try (Connection con = DriverManager.getConnection(imMemoryDbUrl, "SA", "");
+                Statement createStatement = con.createStatement();
+                ResultSet result = createStatement.executeQuery("SELECT * FROM EVENTS");)
+
         {
 
-            if (con == null)
-            {
-                Assert.fail("Problem with creating connectiona to DB");
-            }
-            ResultSet result = con.createStatement().executeQuery("SELECT * FROM EVENTS");
             result.next();
 
             assertEquals("test3", result.getString(1));

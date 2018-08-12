@@ -1,8 +1,9 @@
 package com.test.interview.reader;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import org.json.simple.JSONObject;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -39,7 +40,8 @@ public class JsonFileReaderTest
         String filePath = "src\\test\\resources\\inputFile.txt";
 
         try (
-                FileReader fileReader = new FileReader(filePath);
+                FileInputStream fileInputStream = new FileInputStream(filePath);
+                InputStreamReader fileReader = new InputStreamReader(fileInputStream, "UTF-8");
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 JsonFileReader jsonFileReader = new JsonFileReader(bufferedReader))
         {
@@ -81,7 +83,8 @@ public class JsonFileReaderTest
         String filePath = "src\\test\\resources\\inputFile.txt";
 
         try (
-                FileReader fileReader = new FileReader(filePath);
+                FileInputStream fileInputStream = new FileInputStream(filePath);
+                InputStreamReader fileReader = new InputStreamReader(fileInputStream, "UTF-8");
                 BufferedReader bufferedReader = new BufferedReader(fileReader);
                 JsonFileReader jsonFileReader = new JsonFileReader(bufferedReader))
         {

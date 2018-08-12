@@ -28,12 +28,6 @@ public class DbCommandExecutor implements DbExecutor
     {
         try (Connection con = DriverManager.getConnection(url, "SA", ""))
         {
-            if (con == null)
-            {
-                String errorMsg = "Failed to make connection to database.";
-                logger.error(errorMsg);
-                throw new RuntimeException(errorMsg);
-            }
             execute(con, sql);
         }
         catch (SQLException ex)
