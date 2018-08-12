@@ -11,5 +11,4 @@ public interface DbExecutor extends Runnable
 
     public void submit(Sql sql);
 
-    public void shutdown();
 }

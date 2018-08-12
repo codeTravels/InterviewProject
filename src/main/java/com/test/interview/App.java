@@ -22,17 +22,16 @@ public class App
 
     private final Logger logger = LoggerFactory.getLogger(App.class);
     private final DbExecutor dbExecutor;
-    private final JsonEventService producer;
+    private final JsonEventService jsonEventService;
     private final ExecutorService execSvc = Executors.newSingleThreadExecutor();
 
     public App(String filePath)
     {
         String dbUrl = "jdbc:hsqldb:file:hsqldb\\demodb";
         BlockingQueue<Sql> sharedQueue = new LinkedBlockingQueue<>();
-        ExecutorService dbExecSvc = Executors.newFixedThreadPool(5);
-        this.dbExecutor = new DbCommandExecutor(dbExecSvc, dbUrl, sharedQueue);
+        this.dbExecutor = new DbCommandExecutor(dbUrl, sharedQueue);
 
-        this.producer = new JsonEventService(filePath, sharedQueue);
+        this.jsonEventService = new JsonEventService(filePath, sharedQueue);
     }
 
     void go()
@@ -41,7 +40,7 @@ public class App
         initializeDatabaseTable();
         execSvc.submit(dbExecutor);
 
-        producer.run();
+        jsonEventService.run();
 
         shutdown();
     }
@@ -57,9 +56,8 @@ public class App
         logger.info("Shutting down...");
         try
         {
-            dbExecutor.shutdown();
             execSvc.shutdown();
-            execSvc.awaitTermination(10, TimeUnit.SECONDS);
+            execSvc.awaitTermination(2, TimeUnit.MINUTES);
         }
         catch (InterruptedException ex)
         {
