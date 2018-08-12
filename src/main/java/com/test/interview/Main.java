@@ -12,8 +12,9 @@ public class Main
      */
     public static void main(String[] args)
     {
-        String dbUrl = "jdbc:hsqldb:hsql://localhost/testdb";
-        App app = new App(new DbCommandExecutor(dbUrl), parseFilePath(args));
+        String parsedFilePath = parseFilePath(args);
+        String dbUrl = "jdbc:hsqldb:file:hsqldb\\demodb";
+        App app = new App(new DbCommandExecutor(dbUrl), parsedFilePath);
         app.go();
     }
 
@@ -25,7 +26,7 @@ public class Main
         {
             return argList.get(fileIndex);
         }
-        return "";
+        throw new RuntimeException("--file is a required argument to start the application.");
 
     }
 

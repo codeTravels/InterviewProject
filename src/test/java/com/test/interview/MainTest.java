@@ -1,5 +1,7 @@
 package com.test.interview;
 
+import org.junit.Test;
+
 /**
  *
  * @author Cory
@@ -7,16 +9,13 @@ package com.test.interview;
 public class MainTest
 {
 
-    public MainTest()
-    {
-    }
-
-//    @Test
-    public void testMainTwo()
+    @Test
+    @org.junit.Ignore
+    public void testMain()
     {
         Main.main(new String[]
         {
-            "--file", "src\\main\\resources\\inputFile.txt"
+            "--file", "src\\test\\resources\\inputFile.txt"
         });
     }
 

@@ -20,6 +20,7 @@ public class DbCommandExecutor implements DbExecutor
 
     public DbCommandExecutor(String url)
     {
+        logger.info("Using URL:" + url + " for DB connections");
         this.url = url;
     }
 
@@ -40,7 +41,7 @@ public class DbCommandExecutor implements DbExecutor
     {
         try (Statement statement = con.createStatement())
         {
-            logger.info("SQL: " + sql.get());
+            logger.trace("SQL: " + sql.get());
             statement.execute(sql.get());
         }
     }
