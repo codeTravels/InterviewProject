@@ -37,6 +37,7 @@ public class App
 
     void go()
     {
+        logger.info("Starting app...");
         initializeDatabaseTable();
         execSvc.submit(dbExecutor);
 
@@ -47,11 +48,13 @@ public class App
 
     private void initializeDatabaseTable()
     {
+        logger.info("Submit create table SQL");
         dbExecutor.submit(new CreateEventTableSql());
     }
 
     private void shutdown()
     {
+        logger.info("Shutting down...");
         try
         {
             dbExecutor.shutdown();
@@ -62,5 +65,6 @@ public class App
         {
             logger.error(ex.toString());
         }
+        logger.info("Shutdown complete...");
     }
 }

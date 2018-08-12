@@ -30,6 +30,7 @@ public class DbCommandExecutor implements DbExecutor
     @Override
     public void run()
     {
+        logger.info("Starting DB SQL Executor");
         while (true)
         {
 
@@ -69,6 +70,8 @@ public class DbCommandExecutor implements DbExecutor
     {
         try
         {
+            logger.debug("There are " + queue.size()
+                    + " item(s) in the queue to work at shutdown.");
             execSvc.shutdown();
             execSvc.awaitTermination(10, TimeUnit.SECONDS);
         }
@@ -76,5 +79,6 @@ public class DbCommandExecutor implements DbExecutor
         {
             logger.error(ex.toString());
         }
+        logger.info("Shutdown complete");
     }
 }

@@ -40,6 +40,7 @@ public class JsonEventService implements Runnable
     @Override
     public void run()
     {
+        logger.info("Starting to read the file " + filePath);
         try (
                 FileInputStream fileInputStream = new FileInputStream(filePath);
                 InputStreamReader fileReader = new InputStreamReader(fileInputStream, "UTF-8");
