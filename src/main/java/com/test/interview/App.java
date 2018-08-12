@@ -1,10 +1,10 @@
 package com.test.interview;
 
-import com.test.interview.reader.JsonEventService;
 import com.test.interview.db.DbCommandExecutor;
 import com.test.interview.db.DbExecutor;
 import com.test.interview.db.sql.CreateEventTableSql;
 import com.test.interview.db.sql.Sql;
+import com.test.interview.reader.JsonEventService;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,14 +29,15 @@ public class App
     {
         String dbUrl = "jdbc:hsqldb:file:hsqldb\\demodb";
         BlockingQueue<Sql> sharedQueue = new LinkedBlockingQueue<>();
-        this.dbExecutor = new DbCommandExecutor(dbUrl, sharedQueue);
+        ExecutorService dbExecSvc = Executors.newFixedThreadPool(5);
+        this.dbExecutor = new DbCommandExecutor(dbExecSvc, dbUrl, sharedQueue);
 
         this.producer = new JsonEventService(filePath, sharedQueue);
     }
 
     void go()
     {
-        dbExecutor.submit(new CreateEventTableSql());
+        initializeDatabaseTable();
         execSvc.submit(dbExecutor);
 
         producer.run();
@@ -44,10 +45,16 @@ public class App
         shutdown();
     }
 
+    private void initializeDatabaseTable()
+    {
+        dbExecutor.submit(new CreateEventTableSql());
+    }
+
     private void shutdown()
     {
         try
         {
+            dbExecutor.shutdown();
             execSvc.shutdown();
             execSvc.awaitTermination(10, TimeUnit.SECONDS);
         }

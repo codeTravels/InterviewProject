@@ -2,11 +2,9 @@ package com.test.interview.db;
 
 import com.test.interview.db.sql.PoisonPillSql;
 import com.test.interview.db.sql.Sql;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +18,11 @@ public class DbCommandExecutor implements DbExecutor
     private final Logger logger = LoggerFactory.getLogger(DbCommandExecutor.class);
     private final String url;
     private final BlockingQueue<Sql> queue;
+    private final ExecutorService execSvc;
 
-    public DbCommandExecutor(String url, BlockingQueue queue)
+    public DbCommandExecutor(ExecutorService execSvc, String url, BlockingQueue queue)
     {
+        this.execSvc = execSvc;
         this.url = url;
         this.queue = queue;
     }
@@ -33,8 +33,7 @@ public class DbCommandExecutor implements DbExecutor
         while (true)
         {
 
-            try (Connection con = DriverManager.getConnection(url, "SA", "");
-                    Statement statement = con.createStatement();)
+            try
             {
                 Sql sql = queue.take();
                 if (PoisonPillSql.MESSAGE.equals(sql.get()))
@@ -42,11 +41,9 @@ public class DbCommandExecutor implements DbExecutor
                     logger.debug("POISON_PILL received. Stopping work on DB.");
                     break;
                 }
-
-                logger.trace("SQL: " + sql.get());
-                statement.execute(sql.get());
+                execSvc.submit(new DbSqlWorker(url, sql));
             }
-            catch (SQLException | InterruptedException ex)
+            catch (InterruptedException ex)
             {
                 logger.error(ex.toString());
             }
@@ -60,6 +57,20 @@ public class DbCommandExecutor implements DbExecutor
         try
         {
             queue.put(sql);
+        }
+        catch (InterruptedException ex)
+        {
+            logger.error(ex.toString());
+        }
+    }
+
+    @Override
+    public void shutdown()
+    {
+        try
+        {
+            execSvc.shutdown();
+            execSvc.awaitTermination(10, TimeUnit.SECONDS);
         }
         catch (InterruptedException ex)
         {
