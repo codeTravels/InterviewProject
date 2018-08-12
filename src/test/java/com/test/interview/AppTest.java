@@ -14,6 +14,7 @@ import static org.mockito.Mockito.verify;
  *
  * @author Cory
  */
+@org.junit.Ignore
 public class AppTest
 {
 
@@ -25,9 +26,9 @@ public class AppTest
     public void testCreateTableOnStart()
     {
         DbExecutor executor = mock(DbExecutor.class);
-        App app = new App(executor, "src\\test\\resources\\eventPair.txt");
+        App app = new App("src\\test\\resources\\eventPair.txt");
         ArgumentCaptor<Sql> captor = ArgumentCaptor.forClass(Sql.class);
-        verify(executor).execute(captor.capture());
+        verify(executor).submit(captor.capture());
         String insertSql = captor.getValue().get();
         System.out.println(insertSql);
 
@@ -39,10 +40,10 @@ public class AppTest
     public void testEventEntry()
     {
         DbExecutor executor = mock(DbExecutor.class);
-        App app = new App(executor, "src\\test\\resources\\eventPair.txt");
+        App app = new App("src\\test\\resources\\eventPair.txt");
         app.go();
         ArgumentCaptor<Sql> captor = ArgumentCaptor.forClass(Sql.class);
-        verify(executor, times(2)).execute(captor.capture());
+        verify(executor, times(2)).submit(captor.capture());
         String insertSql = captor.getAllValues().get(1).get();
         System.out.println(insertSql);
 
@@ -53,10 +54,10 @@ public class AppTest
     public void testEventEntrySwapped()
     {
         DbExecutor executor = mock(DbExecutor.class);
-        App app = new App(executor, "src\\test\\resources\\eventPair_swapped.txt");
+        App app = new App("src\\test\\resources\\eventPair_swapped.txt");
         app.go();
         ArgumentCaptor<Sql> captor = ArgumentCaptor.forClass(Sql.class);
-        verify(executor, times(2)).execute(captor.capture());
+        verify(executor, times(2)).submit(captor.capture());
         String insertSql = captor.getAllValues().get(1).get();
         System.out.println(insertSql);
 

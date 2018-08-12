@@ -6,8 +6,8 @@ import com.test.interview.db.sql.Sql;
  *
  * @author Cory
  */
-public interface DbExecutor
+public interface DbExecutor extends Runnable
 {
 
-    public void execute(Sql sql);
+    public void submit(Sql sql);
 }

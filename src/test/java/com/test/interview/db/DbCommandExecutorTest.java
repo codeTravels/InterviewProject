@@ -2,6 +2,8 @@ package com.test.interview.db;
 
 import com.test.interview.db.sql.CreateEventTableSql;
 import com.test.interview.db.sql.InsertIntoEventTableSql;
+import com.test.interview.db.sql.PoisonPillSql;
+import com.test.interview.db.sql.Sql;
 import com.test.interview.model.Event;
 import com.test.interview.model.EventEntry;
 import java.sql.Connection;
@@ -9,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.LinkedBlockingQueue;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -26,9 +29,12 @@ public class DbCommandExecutorTest
         EventEntry entry2 = new EventEntry("test3", "FINISHED", 1);
         Event event = new Event(entry1, entry2);
         String imMemoryDbUrl = "jdbc:hsqldb:mem:mymemdb";
-        DbCommandExecutor executor = new DbCommandExecutor(imMemoryDbUrl);
-        executor.execute(new CreateEventTableSql());
-        executor.execute(new InsertIntoEventTableSql(event));
+        LinkedBlockingQueue<Sql> queue = new LinkedBlockingQueue<>();
+        DbCommandExecutor executor = new DbCommandExecutor(imMemoryDbUrl, queue);
+        queue.add(new CreateEventTableSql());
+        queue.add(new InsertIntoEventTableSql(event));
+        queue.add(new PoisonPillSql());
+        executor.run();
         try (Connection con = DriverManager.getConnection(imMemoryDbUrl, "SA", "");
                 Statement createStatement = con.createStatement();
                 ResultSet result = createStatement.executeQuery("SELECT * FROM EVENTS");)

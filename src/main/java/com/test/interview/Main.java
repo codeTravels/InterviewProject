@@ -1,6 +1,5 @@
 package com.test.interview;
 
-import com.test.interview.db.DbCommandExecutor;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,8 +12,7 @@ public class Main
     public static void main(String[] args)
     {
         String parsedFilePath = parseFilePath(args);
-        String dbUrl = "jdbc:hsqldb:file:hsqldb\\demodb";
-        App app = new App(new DbCommandExecutor(dbUrl), parsedFilePath);
+        App app = new App(parsedFilePath);
         app.go();
     }
 
