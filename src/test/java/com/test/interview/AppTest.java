@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.test.interview;
 
 import com.test.interview.db.DbExecutor;
@@ -31,7 +26,7 @@ public class AppTest
         DbExecutor executor = mock(DbExecutor.class);
         App app = new App(executor, "src\\test\\resources\\eventPair.txt");
         ArgumentCaptor<Sql> captor = ArgumentCaptor.forClass(Sql.class);
-        verify(executor).offer(captor.capture());
+        verify(executor).execute(captor.capture());
         String insertSql = captor.getValue().get();
         System.out.println(insertSql);
 
@@ -45,7 +40,7 @@ public class AppTest
         App app = new App(executor, "src\\test\\resources\\eventPair.txt");
         app.go();
         ArgumentCaptor<Sql> captor = ArgumentCaptor.forClass(Sql.class);
-        verify(executor, times(2)).offer(captor.capture());
+        verify(executor, times(2)).execute(captor.capture());
         String insertSql = captor.getAllValues().get(1).get();
         System.out.println(insertSql);
 
@@ -59,7 +54,7 @@ public class AppTest
         App app = new App(executor, "src\\test\\resources\\eventPair_swapped.txt");
         app.go();
         ArgumentCaptor<Sql> captor = ArgumentCaptor.forClass(Sql.class);
-        verify(executor, times(2)).offer(captor.capture());
+        verify(executor, times(2)).execute(captor.capture());
         String insertSql = captor.getAllValues().get(1).get();
         System.out.println(insertSql);
 

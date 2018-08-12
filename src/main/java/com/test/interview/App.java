@@ -33,7 +33,7 @@ public class App
         this.dbExecutor = dbExecutor;
         this.factory = new JsonEventEntryFactory();
         this.filePath = filePath;
-        dbExecutor.offer(new CreateEventTableSql());
+        dbExecutor.execute(new CreateEventTableSql());
     }
 
     void go()
@@ -64,7 +64,7 @@ public class App
         if (savedEntry != null)
         {
             Event event = new Event(savedEntry, entry);
-            dbExecutor.offer(new InsertIntoEventTableSql(event));
+            dbExecutor.execute(new InsertIntoEventTableSql(event));
             map.remove(savedEntry.getId());
         }
     }

@@ -12,7 +12,8 @@ public class Main
      */
     public static void main(String[] args)
     {
-        App app = new App(new DbCommandExecutor(), parseFilePath(args));
+        String dbUrl = "jdbc:hsqldb:hsql://localhost/testdb";
+        App app = new App(new DbCommandExecutor(dbUrl), parseFilePath(args));
         app.go();
     }
 

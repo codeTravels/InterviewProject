@@ -9,5 +9,5 @@ import com.test.interview.db.sql.Sql;
 public interface DbExecutor
 {
 
-    public void offer(Sql sql);
+    public void execute(Sql sql);
 }
