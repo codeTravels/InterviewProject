@@ -30,7 +30,7 @@ public class App
 
         ExecutorService dbExecSvc = Executors.newFixedThreadPool(10);
         String dbUrl = "jdbc:hsqldb:file:hsqldb\\demodb";
-        BlockingQueue<Sql> sharedQueue = new LinkedBlockingQueue<>();
+        BlockingQueue<Sql> sharedQueue = new LinkedBlockingQueue<>(1000);
         this.dbExecutor = new DbCommandExecutor(dbExecSvc, dbUrl, sharedQueue);
 
         this.jsonEventService = new JsonEventService(filePath, sharedQueue);
