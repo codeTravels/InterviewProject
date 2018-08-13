@@ -5,8 +5,6 @@ import com.test.interview.db.DbExecutor;
 import com.test.interview.db.sql.CreateEventTableSql;
 import com.test.interview.db.sql.Sql;
 import com.test.interview.reader.JsonEventService;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,22 +21,17 @@ public class App
 {
 
     private final Logger logger = LoggerFactory.getLogger(App.class);
-    private final List<DbExecutor> dbExecutors;
+    private final DbExecutor dbExecutor;
     private final JsonEventService jsonEventService;
-    private final ExecutorService execSvc;
+    private final ExecutorService execSvc = Executors.newSingleThreadExecutor();
 
     public App(String filePath)
     {
 
-        dbExecutors = new ArrayList<>();
-        int numDbWorkers = 5;
-        execSvc = Executors.newFixedThreadPool(numDbWorkers);
+        ExecutorService dbExecSvc = Executors.newFixedThreadPool(10);
         String dbUrl = "jdbc:hsqldb:file:hsqldb\\demodb";
         BlockingQueue<Sql> sharedQueue = new LinkedBlockingQueue<>();
-        for (int i = 0; i < numDbWorkers; i++)
-        {
-            this.dbExecutors.add(new DbCommandExecutor(dbUrl, sharedQueue));
-        }
+        this.dbExecutor = new DbCommandExecutor(dbExecSvc, dbUrl, sharedQueue);
 
         this.jsonEventService = new JsonEventService(filePath, sharedQueue);
     }
@@ -47,9 +40,11 @@ public class App
     {
         logger.info("Starting app...");
         initializeDatabaseTable();
-        startDbExecutors();
+        startDbExecutor();
 
         jsonEventService.run();
+
+        waitForDbExecutor();
 
         shutdown();
     }
@@ -57,15 +52,32 @@ public class App
     private void initializeDatabaseTable()
     {
         logger.info("Execute create table SQL");
-        dbExecutors.get(0).execute(new CreateEventTableSql());
+        dbExecutor.execute(new CreateEventTableSql());
     }
 
-    private void startDbExecutors()
+    private void startDbExecutor()
     {
-        dbExecutors.forEach((dbExecutor) ->
+        execSvc.submit(dbExecutor);
+    }
+
+    private void waitForDbExecutor()
+    {
+        while (!dbExecutor.isDone())
         {
-            execSvc.submit(dbExecutor);
-        });
+            logger.info("DbExecutor is working...");
+            synchronized (dbExecutor)
+            {
+                try
+                {
+                    dbExecutor.wait(5000);
+                }
+                catch (InterruptedException ex)
+                {
+                    logger.error(ex.toString());
+
+                }
+            }
+        }
     }
 
     private void shutdown()
@@ -73,8 +85,9 @@ public class App
         logger.info("Shutting down...");
         try
         {
+            dbExecutor.shutdown();
             execSvc.shutdown();
-            execSvc.awaitTermination(2, TimeUnit.MINUTES);
+            execSvc.awaitTermination(5, TimeUnit.SECONDS);
         }
         catch (InterruptedException ex)
         {

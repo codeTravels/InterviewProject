@@ -9,6 +9,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
@@ -26,15 +27,23 @@ public class DbSqlWorkerTest
     @Test
     public void testCreatingAndInsertingIntoInMemoryDB() throws SQLException
     {
-        EventEntry entry1 = new EventEntry("test3", "STARTED", 0);
-        EventEntry entry2 = new EventEntry("test3", "FINISHED", 1);
+        // Setup
+        EventEntry entry1 = new EventEntry("test", "STARTED", 0);
+        EventEntry entry2 = new EventEntry("test", "FINISHED", 1);
         Event event = new Event(entry1, entry2);
         String imMemoryDbUrl = "jdbc:hsqldb:mem:mymemdb";
+
+        // Execute
         DbSqlWorker worker = new DbSqlWorker(imMemoryDbUrl, new CreateEventTableSql());
         worker.run();
         worker = new DbSqlWorker(imMemoryDbUrl, new InsertIntoEventTableSql(event));
         worker.run();
-        try (Connection con = DriverManager.getConnection(imMemoryDbUrl, "SA", "");
+
+        // Verify
+        Properties properties = new Properties();
+        properties.put("user", "SA");
+        properties.put("password", "");
+        try (Connection con = DriverManager.getConnection(imMemoryDbUrl, properties);
                 Statement createStatement = con.createStatement();
                 ResultSet result = createStatement.executeQuery("SELECT * FROM EVENTS");)
 
@@ -42,7 +51,7 @@ public class DbSqlWorkerTest
 
             result.next();
 
-            assertEquals("test3", result.getString(1));
+            assertEquals("test", result.getString(1));
             assertEquals("1", result.getString(2));
             assertEquals("null", result.getString(3));
             assertEquals("null", result.getString(4));

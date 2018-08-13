@@ -2,12 +2,9 @@ package com.test.interview.db;
 
 import com.test.interview.db.sql.PoisonPillSql;
 import com.test.interview.db.sql.Sql;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,15 +16,14 @@ public class DbCommandExecutor implements DbExecutor
 {
 
     private final Logger logger = LoggerFactory.getLogger(DbCommandExecutor.class);
-    private final Properties properties;
     private final String url;
     private final BlockingQueue<Sql> queue;
+    private final ExecutorService execSvc;
+    private boolean isDone = false;
 
-    public DbCommandExecutor(String url, BlockingQueue<Sql> queue)
+    public DbCommandExecutor(ExecutorService execSvc, String url, BlockingQueue queue)
     {
-        properties = new Properties();
-        properties.put("user", "SA");
-        properties.put("password", "");
+        this.execSvc = execSvc;
         this.url = url;
         this.queue = queue;
     }
@@ -38,41 +34,62 @@ public class DbCommandExecutor implements DbExecutor
         logger.info("Starting DB SQL Executor");
         while (true)
         {
-
-            try (Connection con = DriverManager.getConnection(url, properties);
-                    Statement statement = con.createStatement();)
+            try
             {
                 Sql sql = queue.take();
                 if (PoisonPillSql.MESSAGE.equals(sql.get()))
                 {
                     logger.debug("POISON_PILL received. Stopping work on DB.");
-                    queue.put(new PoisonPillSql()); // Putting here for the other instances
                     break;
                 }
-
-                logger.trace("SQL: " + sql.get());
-                statement.execute(sql.get());
+                execSvc.submit(new DbSqlWorker(url, sql));
             }
-            catch (SQLException | InterruptedException ex)
+            catch (InterruptedException ex)
             {
                 logger.error(ex.toString());
             }
         }
+        notifyWorkFinished();
+
+    }
+
+    private void notifyWorkFinished()
+    {
+        execSvc.submit(() ->
+        {
+            synchronized (DbCommandExecutor.this)
+            {
+                logger.info("Finished executing tasks. Notifying complete.");
+                DbCommandExecutor.this.isDone = true;
+                DbCommandExecutor.this.notifyAll();
+            }
+        });
     }
 
     @Override
     public void execute(Sql sql)
     {
-        try (Connection con = DriverManager.getConnection(url, properties);
-                Statement statement = con.createStatement();)
-        {
+        new DbSqlWorker(url, sql).run();
+    }
 
-            logger.trace("SQL: " + sql.get());
-            statement.execute(sql.get());
+    @Override
+    public void shutdown()
+    {
+        try
+        {
+            execSvc.shutdown();
+            execSvc.awaitTermination(5, TimeUnit.SECONDS);
         }
-        catch (SQLException ex)
+        catch (InterruptedException ex)
         {
             logger.error(ex.toString());
         }
+        logger.info("Shutdown complete...");
+    }
+
+    @Override
+    public boolean isDone()
+    {
+        return isDone;
     }
 }

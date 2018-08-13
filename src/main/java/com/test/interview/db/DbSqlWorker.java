@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,10 @@ public class DbSqlWorker implements Runnable
     @Override
     public void run()
     {
-        try (Connection con = DriverManager.getConnection(url, "SA", "");
+        Properties properties = new Properties();
+        properties.put("user", "SA");
+        properties.put("password", "");
+        try (Connection con = DriverManager.getConnection(url, properties);
                 Statement statement = con.createStatement();)
         {
             logger.trace("SQL: " + sql.get());
